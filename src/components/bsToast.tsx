@@ -1,0 +1,116 @@
+import { unmountComponentAtNode } from "react-dom";
+import { createRoot } from "react-dom/client";
+
+export const toast = {
+  remove: () => {
+    unmountComponentAtNode(document.getElementById('toast-container')!);
+    toast.currentToast = false;
+    if (toast.timeout) {
+      clearTimeout(toast.timeout);
+      toast.timeout = null;
+    }
+  },
+  currentToast: false,
+  timeout: null as any,
+  notify: (message: any, options: any = null) => {
+    let duration = 5;
+    let color = 'grey';
+    if (options) {
+      if (options.duration)
+        duration = options.duration;
+      if (options.type === "info")
+        color = 'grey';
+      if (options.type === "success")
+        color = 'green';
+      if (options.type === "error")
+        color = 'red';
+      if (options.type === "warn")
+        color = 'orange';
+    }
+
+    if (toast.currentToast) {
+      toast.remove();
+    }
+    let trasitionPercentage = 0.3 * (100 / duration);
+    const container = document.getElementById('toast-container');
+    const root = createRoot(container!);
+    root.render(<Toast
+      message={message}
+      slideIn={true}
+      color={color || null}
+      transitionPercentage={trasitionPercentage}
+      duration={duration} />);
+    toast.currentToast = true;
+    toast.timeout = window.setTimeout(toast.remove, duration * 1000) || null
+  }
+}
+
+export const ToastContainer = (props: any) => {
+  return (
+    <div id="toast-container" className="toast-container z-50
+    ">
+      <style jsx>{`
+          .toast-container {
+            position: fixed;
+            width: 100%;
+            bottom: 20px;
+            left: 0px;
+          }
+        `}</style>
+    </div>
+  )
+}
+
+const Toast = (props: any) => {
+  return (
+    <div className="toast-message-container">
+      <div className="side-bar"></div>
+      <div id="toast-message" className="toast-message">
+        {props.message}
+      </div>
+      <style jsx>{`
+          .toast-message {
+            flex:1;
+            background-color: #fff;
+            padding: 15px 10px;
+            border-radius: 4px;
+            font-family: 'Open Sans', sans-serif;
+          }
+          .side-bar{
+            padding: 10px;
+            border-radius: 4px;
+          }
+      `}</style>
+      <style jsx>{`
+          @keyframes SlideInOut {
+            0%{
+              transform: translateY(0);
+              opacity:0;
+            }
+            ${props.transitionPercentage}% {
+              transform: translateY(-40px);
+              opacity:1;
+            }
+            ${(100 - props.transitionPercentage)}% {
+              transform: translateY(-40px);
+              opacity:1;
+            }
+            100% {
+              transform: translateY(0px);
+              opacity:0;
+            }
+          }
+          .toast-message-container {
+            color: ${props.color || 'grey'};
+            max-width: 400px;
+            background: ${props.color || 'grey'};
+            box-shadow: 0px 0px 30px #0000001f;
+            margin: 0px auto;
+            border-radius: 4px;
+            display: flex;
+            animation: SlideInOut ${props.duration}s ease-in-out;
+          }
+        `}</style>
+    </div>
+  )
+}
