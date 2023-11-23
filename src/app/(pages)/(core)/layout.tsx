@@ -1,6 +1,7 @@
 "use client";
+import { Loading } from '@/components/bsLoading';
 import { useAuthGuard } from '@/library/user.service';
-import { useLayoutEffect } from 'react';
+import { Suspense, useLayoutEffect } from 'react';
 
 export default function CoreLayout({
   children,
@@ -13,7 +14,9 @@ export default function CoreLayout({
   })
   return (
     <>
-      {children}
+      <Suspense fallback={<Loading />}>
+        {children}
+      </Suspense>
     </>
   )
 }

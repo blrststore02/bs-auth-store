@@ -1,24 +1,32 @@
 "use client";
 import BsForm from "@/components/bsForm";
 import BsStatus from "@/components/bsStatus";
-import { ToastContainer, toast } from "@/components/bsToast";
+import { toast } from "@/components/bsToast";
 import { BSDatePicker } from "@/components/datePicker";
 import { DashboardService } from "@/library/dashboard.service";
 import { useAuthGuard } from "@/library/user.service";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LoginService } from "@/library/login.service";
 import moment from "moment";
+import { Carousel, CarouselInterface, CarouselItem, CarouselOptions } from "flowbite";
+import { BsNumber, BsNumbers } from "@/models/BsNumber";
+import { BsTable } from "@/components/bsTable";
 
 export default function Dashboard() {
+    const [num, setNum] = useState<number | null>();
+    const [count, setCount] = useState<number>(0);
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [pageNum, setPageNum] = useState<number>(0);
+    const pathName = usePathname();
     const [date, setDate] = useState("");
     const [todayDate, setTodayDate] = useState("");
-    const [num, setNum] = useState<number | undefined>();
     const authGuard = useAuthGuard();
     const router = useRouter();
     const queryparameters = useSearchParams()
     const dashboardService = DashboardService();
     const loginService = LoginService();
+    const [nums, setNums] = useState<BsNumber[]>([]);
     const [dimensions, setDimensions] = useState<any>(
         {
             width: window!.innerWidth,
@@ -33,9 +41,79 @@ export default function Dashboard() {
         });
     }
 
-    const dateSelected = (newDate: any) => {
-        setDate(moment(newDate).format('DD-MM-YYYY'));
-        getNumberByDate(newDate);
+    const onPageLoad = () => {
+        window.addEventListener("resize", handleResize, false);
+        const items: CarouselItem[] = [
+            {
+                position: 0,
+                el: document!.querySelector('#carousel-item-1')!,
+            },
+            {
+                position: 1,
+                el: document!.querySelector('#carousel-item-2')!,
+            }
+        ];
+        const options: CarouselOptions = {
+            defaultPosition: queryparameters && queryparameters.get("view") === "table" && 1 || 0,
+            interval: 3000,
+            indicators: {
+                activeClasses: 'bg-[#0092f4]',
+                inactiveClasses:
+                    'bg-[#c2e6ff] hover:bg-[#4db7ff] dark:bg-gray-800/50 dark:hover:bg-gray-800',
+                items: [
+                    {
+                        position: 0,
+                        el: document!.getElementById('carousel-indicator-1')!,
+                    },
+                    {
+                        position: 1,
+                        el: document!.getElementById('carousel-indicator-2')!,
+                    }
+                ],
+            },
+            onChange: ($event) => {
+                const position = $event!._activeItem!.position > 0 ? "table" : "calender";
+                if ($event!._activeItem!.position > 0) {
+                    setPageNum(0);
+                    loadAllNumbers();
+                }
+                router.push(`${pathName}?view=${position}`);
+            },
+        };
+        const carousel: CarouselInterface | null = (dimensions!.width >= 1024) && (new Carousel(items, options)) || null;
+    }
+
+    const loadAllNumbers = async (num: number = 0) => {
+        const [response, isLoading]: [BsNumbers, boolean] = await dashboardService.getNumberList(num, pageSize);
+        if ((response as BsNumbers && response.totalcount > -1) && !isLoading) {
+            setNums(response.results);
+            setCount(response.totalcount);
+        }
+    }
+
+    const dateSelected = (selectedDate: any) => {
+        setDate(selectedDate);
+        getNumberByDate(selectedDate);
+    }
+
+    const nextBtnClicked = (event: any) => {
+        event.stopPropagation();
+        if (((pageNum + 1) * pageSize) < count) {
+            loadAllNumbers(pageNum + 1);
+            setPageNum(pageNum + 1);
+        } else {
+            toast.notify('you are already on last page', { type: 'warn', duration: 1 });
+        }
+    }
+
+    const prevBtnClicked = (event: any) => {
+        event.stopPropagation();
+        if (pageNum > 0) {
+            loadAllNumbers(pageNum - 1);
+            setPageNum(pageNum - 1);
+        } else {
+            toast.notify('you are already on first page', { type: 'warn', duration: 1 });
+        }
     }
 
     const formSubmitted = async (form: any) => {
@@ -49,10 +127,14 @@ export default function Dashboard() {
     }
 
     const getNumberByDate = async (selectedDate: string) => {
-        const [response, isLoading, error] = await dashboardService.getNumberByDate(selectedDate);
-        let num: number | undefined;
-        if (response) num = response.randomNumber;
-        setNum(num);
+        setNum(null);
+        const [response, isLoading] = await dashboardService.getNumberByDate(selectedDate);
+        if (response && !isLoading) setNum((response as BsNumber).randomNumber);
+    }
+
+    const selectedNum = (numRecord: BsNumber) => {
+        setNum(numRecord.randomNumber);
+        setDate(numRecord.numberInsertionDate);
     }
 
     const logoutUser = async (event: any) => {
@@ -62,16 +144,15 @@ export default function Dashboard() {
     }
 
     useEffect(() => {
-        window.addEventListener("resize", handleResize, false);
-        setTodayDate(moment(new Date()).format('DD-MM-YYYY'))
+        onPageLoad();
+        setTodayDate(moment(new Date()).format('YYYY-MM-DD'));
         const selectedDate = queryparameters.get('date') || moment().format('YYYY-MM-DD');
-        setDate(moment(selectedDate).format('DD-MM-YYYY'));
+        setDate(selectedDate);
         getNumberByDate(selectedDate);
     }, [])
 
     return (
         <>
-            {/* <ToastContainer /> */}
             <header className="bg-gradient-to-r from-[#00C5EF] to-[#0092f4]">
                 <nav className="border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
                     <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
@@ -114,17 +195,30 @@ export default function Dashboard() {
                 </nav>
             </header>
             <main className="flex min-h-main w-full">
-                <section className="flex flex-row w-full bg-white dark:bg-gray-900 max-sm:h-full">
-                    {
-                        authGuard.isUserAuthenticated() && (date == todayDate && !num) ?
-                            <BsForm date={date} submit={formSubmitted} />
-                            :
-                            <BsStatus date={date} num={num} dimensions={dimensions} dateSelected={dateSelected} />
-                    }
+                <section className="flex flex-row w-full bg-white dark:bg-gray-900">
+                    <section className="flex flex-row w-full bg-white">
+                        {
+                            authGuard.isUserAuthenticated() && (date == todayDate && !num) ?
+                                <BsForm date={date} submit={formSubmitted} />
+                                :
+                                <BsStatus date={date} num={num} dimensions={dimensions} dateSelected={dateSelected} />
+                        }
+                    </section>
                     {
                         (dimensions!.width >= 1024) &&
-                        <section className="flex flex-row w-full bg-white">
-                            <BSDatePicker dateSelected={dateSelected} />
+                        <section className="flex flex-row w-11/12 h-full bg-white m-4">
+                            <div className="flex relative overflow-hidden h-full w-full">
+                                <div id="carousel-item-1" className="duration-200 ease-linear h-full w-full">
+                                    <BSDatePicker dateSelected={dateSelected} />
+                                </div>
+                                <div id="carousel-item-2" className="hidden duration-200 ease-linear w-full h-full">
+                                    <BsTable list={nums} count={count} pageNum={pageNum} selectedNum={selectedNum} prev={prevBtnClicked} next={nextBtnClicked} />
+                                </div>
+                            </div>
+                            <div className="absolute z-30 flex space-x-3 -translate-x-1/2 bottom-7 left-3/4 md:bottom-7">
+                                <button id="carousel-indicator-1" type="button" className="bg-[#0092f4] w-3 h-3 rounded-full" aria-current="true" aria-label="Slide 1"></button>
+                                <button id="carousel-indicator-2" type="button" className="bg-[#0092f4] w-3 h-3 rounded-full" aria-current="true" aria-label="Slide 2"></button>
+                            </div>
                         </section>
                     }
                 </section>

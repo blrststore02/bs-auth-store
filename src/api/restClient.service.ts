@@ -24,7 +24,6 @@ export const RestEndPService = () => {
     // axiosInstance.defaults.headers.Accept = contentType;
 
     axiosInstance.interceptors.request.use(function (config) {
-        config.headers.Authorization = headers.get() || null;
         config.headers.Accept = contentType;
         config.headers['Content-Type'] = contentType;
         return config;
@@ -42,7 +41,6 @@ export const RestEndPService = () => {
             originalRequest._retry = true;
             return axiosInstance(originalRequest);
         }
-        // toast.notify(error.message);
         return Promise.reject(error);
     });
 

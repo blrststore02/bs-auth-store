@@ -1,6 +1,8 @@
 import { RestEndPService } from "@/api/restClient.service";
 import { AxiosError } from "axios";
 import { useAuthGuard } from "./user.service";
+import { toast } from "@/components/bsToast";
+import { BsNumber, BsNumbers } from "@/models/BsNumber";
 
 export const DashboardService = () => {
     const restEndPService = RestEndPService();
@@ -30,51 +32,52 @@ export const DashboardService = () => {
         }
         return [response, isLoading, error];
     }
-    
-    const getNumberList = async (date: string | null) => {
-        let response: string = "";
+
+    const getNumberList = async (pageNum: Number = 0, pageSize: Number = 10): Promise<[BsNumbers, boolean]> => {
+        let response: BsNumbers = { results: [], totalcount: 0 };
         let isLoading: boolean = true;
         let error: any = {
-            status: "",
             message: ""
         };
         try {
-            const data: any = await restEndPService.get("/reader/allNumbers", date).then((response: { data: any; }) => response.data);
+            const data: any = await restEndPService.get("/reader/allNumbers", { pageNum, pageSize }).then((response: { data: any; }) => response.data);
             response = data;
         } catch (err: unknown) {
             if (err instanceof AxiosError) {
-                console.log(`Error: ${err}`);
-                error = { status: err.message || "Invalid user name or password" };
+                error = { message: err.message };
             } else {
-                error = { status: "failure", message: error || "Server Error!!!" };
+                error = { message: error || "Please wait a few minutes before you try again!!!" };
             }
+            toast.notify(`Error: ${error.message}`);
         } finally {
             isLoading = false;
         }
-        return [response, isLoading, error];
+        return [response, isLoading];
     }
 
     const getNumberByDate = async (date: any) => {
-        let response: string = "";
+        let response: BsNumber = {
+            id: 0,
+            randomNumber: 0,
+            numberInsertionDate: ""
+        };
         let isLoading: boolean = true;
         let error: any = {
-            status: "",
             message: ""
         };
         try {
-            const data: any = await restEndPService.get(`/reader/number/${date}`).then((response: { data: any; }) => response.data);
-            response = data;
+            response = await restEndPService.get(`/reader/number/${date}`).then((response: { data: any; }) => response.data);
         } catch (err: unknown) {
             if (err instanceof AxiosError) {
-                console.log(`Error: ${err}`);
-                error = { status: err.message || "Invalid user name or password" };
+                error = { message: err.message };
             } else {
-                error = { status: "failure", message: error || "Server Error!!!" };
+                error = { message: error || "Please wait a few minutes before you try again!!!" };
             }
+            toast.notify(`Error: ${error.message}`, { type: 'error', duration: 50 });
         } finally {
             isLoading = false;
         }
-        return [response, isLoading, error];
+        return [response, isLoading];
     }
 
     return {

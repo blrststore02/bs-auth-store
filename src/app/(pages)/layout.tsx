@@ -1,6 +1,9 @@
-"use client";
+import { Metadata } from "next";
 
-import { ToastContainer } from "@/components/bsToast"
+export const metadata: Metadata = {
+    title: 'Dashboard | BS ST Store',
+    description: 'View date and table vise number generated',
+}
 
 export default function PageLayout({
     children,
@@ -9,7 +12,6 @@ export default function PageLayout({
 }) {
     return (
         <div>
-            <ToastContainer />
             {children}
         </div>
     )

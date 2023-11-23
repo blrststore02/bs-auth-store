@@ -52,10 +52,33 @@ const config: Config = {
         'Segoe UI Symbol',
         'Noto Color Emoji'
       ]
+    },
+    animation: {
+      wiggle: 'bounceLoading 1s ease-in-out infinite',
+    },
+    keyframes: {
+      bounceLoading: {
+        '0%': {
+          left: '-30px',
+          top: "-30px",
+          height: '5px',
+          borderRadius: '50%',
+          transform: 'scaleX(2)'
+        },
+        '35%': {
+          height: '15px',
+          borderRadius: '50%',
+          transform: 'scaleX(1)'
+        },
+        '100%': {
+          left: '0px',
+          top: '0px'
+        }
+      }
     }
   },
   plugins: [
     require('flowbite/plugin')
-]
+  ]
 }
 export default config

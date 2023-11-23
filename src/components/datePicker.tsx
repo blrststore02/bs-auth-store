@@ -17,13 +17,13 @@ export const BSDatePicker = (props: {dateSelected: Function}) => {
 
   const dateSelected = (selectedDate: any) => {
     console.log(selectedDate.startStr);
-    const date = moment(selectedDate!.startStr).format('YYYY-MM-DD');
+    const date = moment(selectedDate.startStr).format('YYYY-MM-DD');
     props.dateSelected(date || "");
   }
 
   return (
-    <div className="flex items-center w-full py-2 px-12 mx-auto max-w-screen-xl sm:py-4 lg:px-6">
-      <div className="mx-auto w-full p-6 shadow-md bg-[#F8F8FF] border-t-2 border-sky-500 flex-grow mt-1 max-w-screen-sm text-center">
+    <div className="flex items-center w-full h-full py-2 px-12 mx-auto max-w-screen-xl sm:py-4 lg:px-6">
+      <div className="mx-auto w-full p-2 shadow-md bg-white border-t-2 border-sky-500 flex-grow mt-1 max-w-screen-sm text-center">
         <FullCalendar
           plugins={[
             dayGridPlugin,
