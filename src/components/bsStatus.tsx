@@ -13,7 +13,7 @@ export default function BsStatus(props: { date: any, num: number | null | undefi
             <div className="flex items-center w-full py-8 px-4 mx-auto max-w-screen-xl sm:pb-16 lg:px-6">
                 <div className="mx-auto max-w-screen-sm text-center">
                     <h2 className="mb-4 text-4xl flex flex-col tracking-tight text-[#00C5EF] font-extrabold leading-tight dark:text-white space-y-2">
-                        <span>Stay connected </span>
+                        <span>Stay Connected </span>
                         <span>Track Results on Date Selected</span>
                     </h2>
                     {

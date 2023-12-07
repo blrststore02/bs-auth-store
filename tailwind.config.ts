@@ -15,7 +15,7 @@ const config: Config = {
       }
     },
     minHeight: {
-      "main": "calc(100vh - 118px)"
+      "main": "calc(100vh - 58px)"
     },
     fontFamily: {
       'body': [
@@ -55,6 +55,7 @@ const config: Config = {
     },
     animation: {
       wiggle: 'bounceLoading 1s ease-in-out infinite',
+      fadeInOut: 'fadeInOut 1s ease-in-out infinite',
     },
     keyframes: {
       bounceLoading: {
@@ -74,6 +75,16 @@ const config: Config = {
           left: '0px',
           top: '0px'
         }
+      },
+      fadeInOut: {
+        '0%': {
+          opacity: '1',
+          transform: 'translate3d(0, -100%, 0)'
+        },
+        '100%': {
+          opacity: '1',
+          transform: 'none'
+        },
       }
     }
   },

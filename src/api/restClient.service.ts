@@ -3,7 +3,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { RestHttpHeaders } from './restHeaders.service';
 import { toast } from '@/components/bsToast';
-import { useAuthGuard } from '@/library/user.service';
+import { useAuthGuard } from '@/library/auth.service';
 
 const protocol = process.env.NEXT_PUBLIC_PROTOCOL || 'http';
 const host = process.env.NEXT_PUBLIC_HOST || 'localhost';
@@ -20,9 +20,6 @@ export const RestEndPService = () => {
         timeout: parseInt(requestTimeout)
     });
 
-    // axiosInstance.defaults.headers.common.Authorization = headers.get() || null;
-    // axiosInstance.defaults.headers.Accept = contentType;
-
     axiosInstance.interceptors.request.use(function (config) {
         config.headers.Accept = contentType;
         config.headers['Content-Type'] = contentType;
@@ -30,10 +27,16 @@ export const RestEndPService = () => {
     });
 
     axiosInstance.interceptors.response.use((response) => {
+        if ((response && response.data && response.data.statusCode && response.data.statusCode !== 200)) {
+            user.logoutUser();
+            toast.notify(`Please login again. session expired!!!`);
+            axios.defaults.headers.common.Authorization = null;
+            headers.remove();
+        }
         return Promise.resolve(response);
     }, async function (error) {
         const originalRequest = error.config;
-        if ((error.response && error.response.status === 401 && !originalRequest._retry) || (error.response && error.response.status === 500 && !originalRequest._retry)) {
+        if ((error.response && error.response.statusCode && error.response.statusCode !== 200 && !originalRequest._retry) || (error.response && error.response.status === 401 && !originalRequest._retry) || (error.response && error.response.status === 500 && !originalRequest._retry)) {
             user.logoutUser();
             toast.notify(`Please login again. session expired!!!`);
             axios.defaults.headers.common.Authorization = null;
@@ -43,7 +46,6 @@ export const RestEndPService = () => {
         }
         return Promise.reject(error);
     });
-
 
     const get = (path: string, params?: any): Promise<AxiosResponse> => axiosInstance.get(path, { params });
     const post = async (path: string, data: any, headers?:any): Promise<AxiosResponse> => await axiosInstance.post(path, data, headers || null);

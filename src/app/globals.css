@@ -25,7 +25,7 @@ body {
 
 .fc .fc-button-primary {
   color: #ffff;
-  background-color: #3485FF !important;
+  background-color: #00C5EF !important;
   border-color: #FFFFFF !important;
 }
 
@@ -37,4 +37,16 @@ body {
     -webkit-text-fill-color: #ffffff;
     transition: none !important;
     box-shadow: none !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: #00C5EF;
+}
+
+.fc .fc-daygrid-day-number {
+  color: #00C5EF;
+}
+
+.fc .fc-toolbar-title {
+  color: #00C5EF;
 }

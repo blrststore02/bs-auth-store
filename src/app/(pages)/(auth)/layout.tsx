@@ -1,5 +1,5 @@
 "use client";
-import { useAuthGuard } from '@/library/user.service';
+import { useAuthGuard } from '@/library/auth.service';
 import { useLayoutEffect } from 'react';
 
 export default function LoginLayout({
@@ -8,9 +8,11 @@ export default function LoginLayout({
   children: React.ReactNode
 }) {
   const authGuard = useAuthGuard();
+
   useLayoutEffect(() => {
     authGuard.routeUserOnAuth();
   })
+
   return (
     <>{children}</>
   )

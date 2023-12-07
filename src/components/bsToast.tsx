@@ -44,7 +44,7 @@ export const toast = {
       slideIn={true}
       color={color || null}
       transitionPercentage={trasitionPercentage}
-      duration={duration} />);
+      duration={duration} close={toast.remove} />);
     toast.currentToast = true;
     setTimeout(toast.remove, duration * 1000)
   }
@@ -69,8 +69,11 @@ const Toast = (props: any) => {
   return (
     <div className="toast-message-container">
       <div className="side-bar"></div>
-      <div id="toast-message" className="toast-message">
-        {props.message}
+      <div id="toast-message" className="toast-message flex flex-row justify-between">
+        <span>
+          {props.message}
+        </span>
+        <button onClick={props.close} ><img src="/close.svg" width={16} height={16} alt="Close"></img></button>
       </div>
       <style jsx>{`
           .toast-message {

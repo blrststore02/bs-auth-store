@@ -1,6 +1,6 @@
 import { RestEndPService } from "@/api/restClient.service";
 import { AxiosError } from "axios";
-import { useAuthGuard } from "./user.service";
+import { useAuthGuard } from "./auth.service";
 import { toast } from "@/components/bsToast";
 import { BsNumber, BsNumbers } from "@/models/BsNumber";
 
@@ -18,7 +18,7 @@ export const DashboardService = () => {
         try {
             if (!authGuard.isUserAuthenticated())
                 authGuard.routeUserOnAuth();
-            const data: any = await restEndPService.post(`/generator/${authGuard.userValue}/create`, num.number).then((response: { data: any; }) => response.data);
+            const data: any = await restEndPService.post(`/generator/${authGuard.token}/create`, num.number).then((response: { data: any; }) => response.data);
             response = data;
         } catch (err: unknown) {
             if (err instanceof AxiosError) {

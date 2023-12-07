@@ -1,52 +1,37 @@
-import { useGlobalStorage } from "@/context/storage.context";
-import { usePathname, useRouter } from "next/navigation";
-import { BehaviorSubject } from "rxjs";
+import { RestEndPService } from "@/api/restClient.service";
+import { AxiosError } from "axios";
+import { toast } from "@/components/bsToast";
+import { useAuthGuard } from "./auth.service";
 
-export const useAuthGuard = () => {
-  const path = "/login";
-
-  const router = useRouter();
-  const routerPath = usePathname();
-  const globalData = useGlobalStorage();
-  
-  const user$ = new BehaviorSubject(JSON.parse((globalData.getByKey('user') as string)));
-  
-  const routeUserOnAuth = () => {
-    if (!globalData.getByKey('user')) {
-      if (!routerPath.includes(path)) {
-        router.push(path);
-      }
-    } else {
-      if (routerPath.includes(path)) {
-        router.push('/dashboard');
-      }
+export const UserService = () => {
+    const restEndPService = RestEndPService();
+    const authGuard = useAuthGuard();
+    const add = async (userInfo: any) => {
+        let sessionStatus: string = "";
+        let isLoading: boolean = true;
+        let error: any = {
+            status: "",
+            message: ""
+        };
+        try {
+            const data: any = await restEndPService.post("/generator/user", { userInfo }).then((response: { data: any; }) => response.data);
+            sessionStatus = data;
+            // authGuard.authenticateUser(data);
+        } catch (err: unknown) {
+            if (err instanceof AxiosError) {
+                console.log(`Error: ${err}`);
+                error = { status: err.message || "Invalid user name or password" };
+            } else {
+                error = { status: "failure", message: error || "Server Error!!!" };
+            }
+            toast.notify(`Error: ${error.status}`);
+        } finally {
+            isLoading = false;
+        }
+        return [sessionStatus, isLoading, error];
     }
-  }
 
-  const authenticateUser = (user: any) => {
-    user$.next(user);
-    globalData.setByKey('user', JSON.stringify(user));
-  }
-
-  const logoutUser = () => {
-    globalData.clearAll();
-    router.push(path);
-  }
-
-  const clearUserDetails = () => {
-    globalData.clearAll();
-  }
-
-  const isUserAuthenticated = () => {
-    return globalData.getByKey('user') || false;
-  }
-
-  return {
-    routeUserOnAuth,
-    authenticateUser,
-    logoutUser,
-    isUserAuthenticated,
-    clearUserDetails,
-    get userValue() { return user$.value && user$.value.uniqueIdentifier || "" },
-  }
+    return {
+        add,
+    };
 }
