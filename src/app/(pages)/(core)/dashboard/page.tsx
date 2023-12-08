@@ -9,8 +9,6 @@ import { BsNumber, BsNumbers } from "@/models/BsNumber";
 import { BSDatePicker } from "@/components/datePicker";
 import { useAuthGuard } from "@/library/auth.service";
 import { DashboardService } from "@/library/dashboard.service";
-import { LoginService } from "@/library/login.service";
-import { SettingsService } from "@/library/settings.service";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Carousel, CarouselInterface, CarouselItem, CarouselOptions } from "flowbite";
 
@@ -118,12 +116,9 @@ export default function Dashboard() {
     }
 
     const formSubmitted = async (form: any) => {
-        const [response, isLoading, error] = await dashboardService.setNumberByDate(form);
-        if (response && response.responseStatus) {
-            router.refresh();
+        const [response, isLoading] = await dashboardService.setNumberByDate(form);
+        if (response) {
             getNumberByDate(date);
-        } else {
-            toast.notify(`error: ${response.error || error}`);
         }
     }
 

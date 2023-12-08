@@ -1,54 +1,49 @@
 import { RestEndPService } from "@/api/restClient.service";
-import { AxiosError } from "axios";
 import { useAuthGuard } from "./auth.service";
 import { toast } from "@/components/bsToast";
 import { BsNumber, BsNumbers } from "@/models/BsNumber";
+import { BsRequest } from "@/models/BsRequest";
 
 export const DashboardService = () => {
     const restEndPService = RestEndPService();
     const authGuard = useAuthGuard();
 
-    const setNumberByDate = async (num: any) => {
-        let response: string = "";
+    const defaultResponse: BsRequest = {
+        message: undefined,
+        responseStatus: undefined,
+        statusCode: undefined,
+        responseData: undefined,
+        uniqueIdentifier: undefined,
+        totalCount: 0
+    }
+
+    const setNumberByDate = async (payload: any) => {
+        let response: BsRequest = defaultResponse;
         let isLoading: boolean = true;
-        let error: any = {
-            status: "",
-            message: ""
-        };
         try {
             if (!authGuard.isUserAuthenticated())
                 authGuard.routeUserOnAuth();
-            const data: any = await restEndPService.post(`/generator/${authGuard.token}/create`, num.number).then((response: { data: any; }) => response.data);
-            response = data;
+            response = await restEndPService.post(`/generator/${authGuard.token}/create`, payload.number).then((response: { data: any; }) => response.data || defaultResponse);
         } catch (err: unknown) {
-            if (err instanceof AxiosError) {
-                console.log(`Error: ${err}`);
-                error = { status: err.message || "Invalid user name or password" };
-            } else {
-                error = { status: "failure", message: error || "Server Error!!!" };
-            }
+            toast.notify(`Unknown error encountered. Please try again after some time!!!`, { type: 'error', duration: 50 });
         } finally {
             isLoading = false;
         }
-        return [response, isLoading, error];
+        return [response, isLoading];
     }
 
     const getNumberList = async (pageNum: Number = 0, pageSize: Number = 10): Promise<[BsNumbers, boolean]> => {
+        let responseObj: BsRequest = defaultResponse;
         let response: BsNumbers = { results: [], totalcount: 0 };
         let isLoading: boolean = true;
-        let error: any = {
-            message: ""
-        };
         try {
-            const data: any = await restEndPService.get("/reader/allNumbers", { pageNum, pageSize }).then((response: { data: any; }) => response.data);
-            response = data;
-        } catch (err: unknown) {
-            if (err instanceof AxiosError) {
-                error = { message: err.message };
-            } else {
-                error = { message: error || "Please wait a few minutes before you try again!!!" };
+            responseObj = await restEndPService.get(`/generator/${authGuard.token}/allNumbers`, { pageNum, pageSize }).then((response: { data: any; }) => response.data || defaultResponse);
+            response = {
+                results: responseObj!.responseData || [],
+                totalcount: responseObj!.totalCount || 0
             }
-            toast.notify(`Error: ${error.message}`);
+        } catch (err: unknown) {
+            toast.notify(`Unknown error encountered. Please try again after some time!!!`, { type: 'error', duration: 50 });
         } finally {
             isLoading = false;
         }
@@ -62,18 +57,10 @@ export const DashboardService = () => {
             numberInsertionDate: ""
         };
         let isLoading: boolean = true;
-        let error: any = {
-            message: ""
-        };
         try {
-            response = await restEndPService.get(`/reader/number/${date}`).then((response: { data: any; }) => response.data);
+            response = await restEndPService.get(`/generator/${authGuard.token}/number/${date}`).then((response: { data: any; }) => response.data);
         } catch (err: unknown) {
-            if (err instanceof AxiosError) {
-                error = { message: err.message };
-            } else {
-                error = { message: error || "Please wait a few minutes before you try again!!!" };
-            }
-            toast.notify(`Error: ${error.message}`, { type: 'error', duration: 50 });
+            toast.notify(`Unknown error encountered. Please try again after some time!!!`, { type: 'error', duration: 50 });
         } finally {
             isLoading = false;
         }

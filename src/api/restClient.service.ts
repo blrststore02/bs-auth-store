@@ -28,10 +28,14 @@ export const RestEndPService = () => {
 
     axiosInstance.interceptors.response.use((response) => {
         if ((response && response.data && response.data.statusCode && response.data.statusCode !== 200)) {
-            user.logoutUser();
-            toast.notify(`Please login again. session expired!!!`);
-            axios.defaults.headers.common.Authorization = null;
-            headers.remove();
+            if([401, 500, 511].includes(response.data.statusCode)) {
+                user.logoutUser();
+                toast.notify(response.data.message || `Please login again. session expired!!!`);
+                axios.defaults.headers.common.Authorization = null;
+                headers.remove();
+            } else {
+                toast.notify(response.data.message || 'Unknown error encountered. Please try again after some time!!!');
+            }
         }
         return Promise.resolve(response);
     }, async function (error) {
